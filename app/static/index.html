@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel Integral de Salud Sexual Masculina</title>
+  <link rel="icon" href="/assets/logo_genoma.png" type="image/png">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-lockup">
+      <img src="/assets/logo_genoma.png" alt="Genoma">
+      <div><strong>Salud Sexual Masculina</strong><span>Panel molecular integral</span></div>
+    </div>
+    <nav aria-label="Acciones principales">
+      <button type="button" data-action="home">Inicio</button>
+      <button type="button" data-action="history">Buscar informes</button>
+      <button type="button" data-action="settings">Configuración</button>
+      <button type="button" data-action="instructions">Instrucciones</button>
+      <button type="button" data-action="example">Datos ejemplo</button>
+      <button type="button" data-action="clear">Limpiar</button>
+      <button type="button" data-action="save-report">Guardar informe</button>
+      <button type="button" data-action="print" class="primary">Generar PDF</button>
+    </nav>
+  </header>
+
+  <main id="dashboard" class="dashboard app-view">
+    <section class="dashboard-band dashboard-hero">
+      <div>
+        <span class="eyebrow">Laboratorios Genoma</span>
+        <h1>Panel Integral de Salud Sexual Masculina</h1>
+        <p>Registro molecular de ITS, bacterias uropatógenas, hongos y carga viral de VPH.</p>
+      </div>
+      <button type="button" data-action="new-report" class="primary">Crear informe nuevo</button>
+    </section>
+    <section class="dashboard-band dashboard-tools">
+      <div><span class="eyebrow">Archivo clínico</span><h2>Pacientes e informes anteriores</h2></div>
+      <button type="button" data-action="history">Buscar informes</button>
+    </section>
+  </main>
+
+  <main id="historyView" class="history-view app-view hidden">
+    <section class="history-head">
+      <div><span class="eyebrow">Archivo clínico</span><h1>Buscar informes guardados</h1></div>
+      <button type="button" data-action="new-report" class="primary">Crear informe nuevo</button>
+    </section>
+    <section class="search-panel">
+      <label>Nombre, apellido o documento
+        <input id="globalSearch" autocomplete="off" placeholder="Ej: Carlos Perez o V-12345678">
+      </label>
+      <div id="dashboardResults" class="dashboard-results"></div>
+    </section>
+  </main>
+
+  <main id="settingsView" class="settings-view app-view hidden">
+    <section class="settings-head">
+      <div><span class="eyebrow">Administración técnica</span><h1>Configuración del informe</h1></div>
+      <button type="button" data-action="editor">Volver al informe</button>
+    </section>
+    <section class="settings-layout">
+      <div class="settings-section">
+        <h2>Identidad y firma</h2>
+        <div class="form-grid two">
+          <label>Título del informe<input id="settingReportTitle"></label>
+          <label>Subtítulo<input id="settingReportSubtitle"></label>
+          <label>Nombre del laboratorio<input id="settingLabName"></label>
+          <label>Firma profesional<input id="settingSignature"></label>
+          <label class="wide">Nota legal<textarea id="settingLegalNote" rows="3"></textarea></label>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h2>Valores predeterminados</h2>
+        <div class="form-grid">
+          <label>Tipo de muestra<input id="settingSampleType"></label>
+          <label>Interpretación clínica<textarea id="settingInterpretation" rows="5"></textarea></label>
+          <label>Recomendaciones<textarea id="settingRecommendations" rows="6"></textarea></label>
+        </div>
+      </div>
+      <div class="settings-section settings-vph">
+        <h2>Curvas y rangos de VPH</h2>
+        <p class="technical-note">Estos valores provienen del informe de carga viral VPH validado. Modifícalos solo si el laboratorio cambia de curva o metodología.</p>
+        <div id="vphSettings"></div>
+      </div>
+    </section>
+    <footer class="settings-actions">
+      <span id="settingsStatus">Configuración cargada</span>
+      <div><button type="button" data-action="restore-settings">Restaurar</button><button type="button" data-action="save-settings" class="primary">Guardar configuración</button></div>
+    </footer>
+  </main>
+
+  <main id="editorView" class="workspace app-view hidden">
+    <aside class="editor-panel">
+      <section class="editor-card patient-card">
+        <div class="section-heading"><span>1</span><div><h2>Paciente y muestra</h2><p>Datos de identificación y control analítico.</p></div></div>
+        <div class="form-grid two">
+          <label>Nombre completo<input id="patientName" placeholder="Nombre y apellido"></label>
+          <label>Tipo de documento<select id="documentType"><option>Cédula</option><option>Pasaporte</option><option>RIF</option><option>Otro</option></select></label>
+          <label>Documento<input id="patientDocument" placeholder="V-"></label>
+          <label>Fecha de evaluación<input id="evalDate" type="date"></label>
+          <label>Fecha de nacimiento<input id="birthDate" type="date"></label>
+          <label>Tipo de muestra<input id="sampleType"></label>
+          <label>Concentración de ADN<input id="dnaConcentration" placeholder="Ej: 35,2 ng/ul"></label>
+          <label>Celularidad<input id="cellularity" placeholder="Ej: Adecuada"></label>
+          <label>Pureza<select id="purity"><option>Óptima</option><option>Adecuada</option><option>Subóptima</option><option>No evaluada</option></select></label>
+          <label>Control interno<select id="internalControl"><option>Detectado</option><option>No detectado</option><option>No evaluado</option></select></label>
+        </div>
+      </section>
+
+      <section class="editor-card">
+        <div class="section-heading"><span>2</span><div><h2>Resultados moleculares</h2><p>Selecciona el resultado de cada agente.</p></div></div>
+        <div class="result-tabs" role="tablist" aria-label="Grupos del panel">
+          <button type="button" class="active" data-result-tab="its">ITS</button>
+          <button type="button" data-result-tab="bacteria">Bacterias</button>
+          <button type="button" data-result-tab="fungi">Hongos</button>
+          <button type="button" data-result-tab="vph">VPH</button>
+        </div>
+        <div id="resultPanel"></div>
+      </section>
+
+      <section class="editor-card">
+        <div class="section-heading"><span>3</span><div><h2>Interpretación y cierre</h2><p>Textos editables antes de generar el PDF.</p></div></div>
+        <div class="form-grid">
+          <label>Interpretación clínica<textarea id="interpretation" rows="6"></textarea></label>
+          <label>Recomendaciones<textarea id="recommendations" rows="7"></textarea></label>
+          <label>Observaciones<textarea id="observations" rows="4" placeholder="Opcional"></textarea></label>
+          <label>Firma / profesional responsable<input id="signatureText"></label>
+        </div>
+      </section>
+    </aside>
+    <section class="preview-shell">
+      <div class="preview-toolbar"><span>Vista previa A4</span><button type="button" data-action="print" class="primary">Generar PDF</button></div>
+      <div id="report" class="report"></div>
+    </section>
+  </main>
+
+  <dialog id="instructionsDialog" class="instructions-dialog">
+    <header><div><strong>Cómo crear el informe</strong><span>Guía rápida del panel masculino</span></div><button type="button" data-action="close-instructions" aria-label="Cerrar">Cerrar</button></header>
+    <div class="instructions-content">
+      <ol>
+        <li><b>Registra al paciente.</b> Escribe nombre, documento, fecha, muestra, concentración, celularidad, pureza y control interno.</li>
+        <li><b>Completa cada bloque.</b> En ITS, bacterias y hongos selecciona No detectado, Detectado bajo, Detectado medio o Detectado alto.</li>
+        <li><b>Introduce los CT de VPH.</b> Escribe únicamente los CT detectados. Deja vacío lo no detectado; la app calcula carga y clasificación automáticamente.</li>
+        <li><b>Revisa la vista previa.</b> Confirma que nombres, resultados, interpretación y recomendaciones sean correctos.</li>
+        <li><b>Guarda el informe.</b> Se creará el paciente o una nueva versión dentro de su historial.</li>
+        <li><b>Genera el PDF.</b> Presiona Generar PDF y selecciona Guardar como PDF, papel A4, escala 100 % y sin encabezados del navegador.</li>
+      </ol>
+      <p class="warning-note"><b>Importante:</b> el informe organiza resultados moleculares. La interpretación diagnóstica y la conducta terapéutica corresponden al médico tratante.</p>
+    </div>
+  </dialog>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
