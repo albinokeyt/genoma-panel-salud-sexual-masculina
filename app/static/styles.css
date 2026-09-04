@@ -198,10 +198,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 
 .report-page::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: url("/assets/fondo_genoma.jpg") top center / cover no-repeat; opacity: .045; }
 .report-page > * { position: relative; z-index: 1; }
-.report-header { min-height: 65px; display: grid; grid-template-columns: 135px 1fr; gap: 12px; align-items: center; border-bottom: 2px solid #d9e5dc; }
-.report-header.compact { min-height: 48px; grid-template-columns: 100px 1fr; }
-.report-header img { width: 124px; height: 51px; object-fit: contain; }
-.report-header.compact img { width: 92px; height: 36px; }
+.report-header { min-height: 65px; display: grid; grid-template-columns: 156px minmax(0, 1fr); gap: 12px; align-items: center; border-bottom: 2px solid #d9e5dc; }
+.report-header.compact { min-height: 48px; grid-template-columns: 120px minmax(0, 1fr); }
+.report-header img { width: 148px; height: 60px; object-fit: contain; }
+.report-header.compact img { width: 112px; height: 44px; }
 .report-header h1 { margin: 0; color: var(--rose); font-size: 19px; line-height: 1.12; }
 .report-header.compact h1 { font-size: 15px; }
 .report-header p { margin: 4px 0 0; color: #5e7066; font-size: 9px; }
