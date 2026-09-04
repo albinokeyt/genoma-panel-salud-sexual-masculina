@@ -66,6 +66,7 @@
           <label>Subtítulo<input id="settingReportSubtitle"></label>
           <label>Nombre del laboratorio<input id="settingLabName"></label>
           <label>Firma profesional<input id="settingSignature"></label>
+          <label class="wide">Descripción / credenciales de la firma<textarea id="settingSignatureCredentials" rows="3"></textarea></label>
           <label class="wide">Nota legal<textarea id="settingLegalNote" rows="3"></textarea></label>
         </div>
       </div>
@@ -98,7 +99,15 @@
           <label>Tipo de documento<select id="documentType"><option>Cédula</option><option>Pasaporte</option><option>RIF</option><option>Otro</option></select></label>
           <label>Documento<input id="patientDocument" placeholder="V-"></label>
           <label>Fecha de evaluación<input id="evalDate" type="date"></label>
-          <label>Fecha de nacimiento<input id="birthDate" type="date"></label>
+          <fieldset class="birth-date-field">
+            <legend>Fecha de nacimiento</legend>
+            <div class="birth-date-inputs">
+              <label>Día<input id="birthDay" inputmode="numeric" maxlength="2" placeholder="DD" autocomplete="bday-day" aria-describedby="birthDateError"></label>
+              <label>Mes<select id="birthMonth" autocomplete="bday-month" aria-describedby="birthDateError"><option value="">Mes</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></label>
+              <label>Año<input id="birthYear" inputmode="numeric" maxlength="4" placeholder="AAAA" autocomplete="bday-year" aria-describedby="birthDateError"></label>
+            </div>
+            <span id="birthDateError" class="field-error" role="status"></span>
+          </fieldset>
           <label>Tipo de muestra<input id="sampleType"></label>
           <label>Concentración de ADN<input id="dnaConcentration" placeholder="Ej: 35,2 ng/ul"></label>
           <label>Pureza<select id="purity"><option>Óptima</option><option>Adecuada</option><option>Subóptima</option><option>No evaluada</option></select></label>
@@ -150,6 +159,8 @@
 
   <script src="/static/vendor/html2canvas.min.js"></script>
   <script src="/static/vendor/jspdf.umd.min.js"></script>
+  <script src="/static/birth-date.js"></script>
+  <script src="/static/report-layout.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

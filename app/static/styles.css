@@ -110,6 +110,14 @@ input, select, textarea {
 input, select { min-height: 39px; padding: 0 10px; }
 textarea { padding: 10px; resize: vertical; line-height: 1.45; }
 input:focus, select:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(45, 109, 70, .10); }
+.birth-date-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+.birth-date-field legend { padding: 0; margin-bottom: 6px; color: #385345; font-size: 12px; font-weight: 800; }
+.birth-date-inputs { display: grid; grid-template-columns: 52px minmax(0, 1fr) 78px; gap: 6px; }
+.birth-date-inputs label { font-size: 11px; }
+.birth-date-inputs input, .birth-date-inputs select { min-width: 0; padding: 0 7px; font-size: 16px; }
+.field-error { display: block; margin-top: 5px; color: var(--rose-dark); font-size: 12px; }
+.field-error:empty { display: none; }
+[aria-invalid="true"] { border-color: var(--rose-dark); }
 
 .dashboard-results { margin-top: 14px; display: grid; gap: 10px; }
 .empty-dashboard { padding: 24px; border: 1px dashed #adc8b5; border-radius: 7px; color: var(--muted); display: grid; gap: 5px; }
@@ -185,10 +193,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .report { display: grid; gap: 14px; justify-content: start; }
 
 .report-page {
+  display: flex;
+  flex-direction: column;
   position: relative;
   width: var(--page-width);
   height: var(--page-height);
-  padding: 11mm 12mm 13mm;
+  padding: 11mm 12mm 18mm;
   overflow: hidden;
   color: #173025;
   background: #fff;
@@ -198,58 +208,64 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 
 .report-page::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: url("/assets/fondo_genoma.jpg") top center / cover no-repeat; opacity: .045; }
 .report-page > * { position: relative; z-index: 1; }
-.report-header { min-height: 65px; display: grid; grid-template-columns: 156px minmax(0, 1fr); gap: 12px; align-items: center; border-bottom: 2px solid #d9e5dc; }
-.report-header.compact { min-height: 48px; grid-template-columns: 120px minmax(0, 1fr); }
-.report-header img { width: 148px; height: 60px; object-fit: contain; }
-.report-header.compact img { width: 112px; height: 44px; }
+.report-page > .report-header { flex: 0 0 auto; }
+.report-body { display: flow-root; flex: 1; min-height: 0; }
+.report-header { min-height: 80px; padding-bottom: 10px; display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; align-items: center; border-bottom: 2px solid #d9e5dc; }
+.report-header.compact { min-height: 70px; grid-template-columns: 155px minmax(0, 1fr); }
+/* Natural image dimensions also preserve the logo in the canvas PDF exporter. */
+.report-header img { display: block; width: 170px; height: auto; }
+.report-header.compact img { width: 155px; height: auto; }
+.report-header > div { min-width: 0; overflow-wrap: anywhere; }
 .report-header h1 { margin: 0; color: var(--rose); font-size: 19px; line-height: 1.12; }
-.report-header.compact h1 { font-size: 15px; }
-.report-header p { margin: 4px 0 0; color: #5e7066; font-size: 9px; }
-.report-header.compact p { font-size: 8px; }
+.report-header.compact h1 { font-size: 17px; }
+.report-header p { margin: 5px 0 0; color: #42584b; font-size: 10pt; line-height: 1.3; }
+.report-header.compact p { font-size: 9.5pt; }
 
-.patient-band { margin-top: 10px; display: grid; grid-template-columns: .75fr 1.5fr .9fr 1.25fr; border: 1px solid #bed5c4; border-radius: 7px; overflow: hidden; }
+.patient-band { margin-top: 10px; display: grid; grid-template-columns: 1fr 1.5fr 1.3fr; border: 1px solid #bed5c4; border-radius: 7px; overflow: hidden; }
 .patient-band > div { min-height: 43px; padding: 7px 9px; border-left: 1px solid #d0e0d4; }
-.patient-band > div:first-child { border-left: 0; }
-.patient-band small, .quality-band small { display: block; margin-bottom: 4px; color: #688076; font-size: 7px; font-weight: 900; text-transform: uppercase; }
-.patient-band b { display: block; font-size: 9.5px; overflow-wrap: anywhere; }
+.patient-band > div:nth-child(3n+1) { border-left: 0; }
+.patient-band > div:nth-child(n+4) { border-top: 1px solid #d0e0d4; }
+.patient-band small, .quality-band small { display: block; margin-bottom: 4px; color: #4c6659; font-size: 9pt; font-weight: 800; text-transform: uppercase; }
+.patient-band b { display: block; font-size: 11pt; overflow-wrap: anywhere; }
 .quality-band { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .quality-band > div { min-height: 43px; padding: 7px; border: 1px solid #ceded2; border-radius: 6px; background: #f8fbf8; }
-.quality-band b { display: block; font-size: 9px; }
+.quality-band b { display: block; font-size: 11pt; }
 .quality-band b.good { color: var(--green); }
 .quality-band b.alert { color: var(--rose-dark); }
 
 .report-section-title { margin: 11px 0 7px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #c7dacb; padding-bottom: 5px; }
 .report-section-title > span { width: 23px; height: 23px; flex: 0 0 23px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--green); font-size: 9px; font-weight: 900; }
-.report-section-title h2 { margin: 0; color: #204b31; font-size: 14px; }
-.report-section-title p { margin: 2px 0 0; color: var(--muted); font-size: 8px; }
+.report-section-title h2 { margin: 0; color: #204b31; font-size: 13pt; }
+.report-section-title p { margin: 3px 0 0; color: #4c6255; font-size: 10pt; line-height: 1.3; }
 .summary-strip { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid #c5dac9; border-radius: 7px; overflow: hidden; }
 .summary-strip div { min-height: 48px; display: grid; place-items: center; align-content: center; border-left: 1px solid #d4e1d7; background: #f8fbf8; }
 .summary-strip div:first-child { border-left: 0; background: #eaf4ec; }
 .summary-strip strong { color: var(--green-dark); font-size: 17px; }
-.summary-strip span { margin-top: 2px; color: var(--muted); font-size: 7px; }
+.summary-strip span { margin: 3px 4px 0; color: #4c6255; font-size: 9pt; text-align: center; }
 .finding-board { margin-top: 7px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
 .finding-group { min-height: 39px; padding: 6px 7px; border-left: 3px solid var(--rose); background: #fbf7f8; }
 .finding-group.clear { border-left-color: #77a98a; background: #f4faf5; }
-.finding-group > b { display: block; margin-bottom: 4px; color: #4d6256; font-size: 7px; text-transform: uppercase; }
-.finding-group > span { color: var(--green); font-size: 8px; font-weight: 800; }
+.finding-group > b { display: block; margin-bottom: 4px; color: #4d6256; font-size: 9pt; text-transform: uppercase; }
+.finding-group > span { color: var(--green); font-size: 10pt; font-weight: 800; }
 .finding-group > div { display: flex; flex-wrap: wrap; gap: 3px; }
 
-.clinical-table { width: 100%; border-collapse: separate; border-spacing: 0; overflow: hidden; border: 1px solid #bfd4c4; border-radius: 6px; font-size: 8.8px; table-layout: fixed; }
-.clinical-table th { padding: 5px 6px; color: #31513e; background: #e7f0e9; text-align: left; font-size: 7.4px; text-transform: uppercase; }
-.clinical-table td { height: 24px; padding: 3px 6px; border-top: 1px solid #d7e3da; vertical-align: middle; overflow-wrap: anywhere; }
-.clinical-table td small { display: block; margin-top: 1px; color: #6e7e74; font-size: 7px; }
+.clinical-table { width: 100%; border-collapse: separate; border-spacing: 0; overflow: hidden; border: 1px solid #bfd4c4; border-radius: 6px; font-size: 11pt; line-height: 1.3; table-layout: fixed; }
+.clinical-table th { padding: 7px 8px; color: #31513e; background: #e7f0e9; text-align: left; font-size: 9pt; text-transform: uppercase; overflow-wrap: anywhere; }
+.clinical-table td { height: 30px; padding: 3px 8px; border-top: 1px solid #d7e3da; vertical-align: middle; overflow-wrap: anywhere; }
+.clinical-table td small { display: block; margin-top: 2px; color: #4c6255; font-size: 9pt; }
 .clinical-table td:last-child { width: 130px; }
 .result-table th:first-child { width: 70%; }
 .result-table th:last-child { width: 30%; }
 .clinical-table tr:nth-child(even) td { background: #fafcfa; }
 .clinical-table i { font-style: italic; }
-.clinical-table.vph-report-table { font-size: 8px; }
-.vph-report-table th:nth-child(1) { width: 9%; }
-.vph-report-table th:nth-child(2) { width: 18%; }
+.clinical-table.vph-report-table { font-size: 10pt; }
+.vph-report-table th:nth-child(1) { width: 12%; }
+.vph-report-table th:nth-child(2) { width: 19%; }
 .vph-report-table th:nth-child(3) { width: 16%; }
-.vph-report-table th:nth-child(4) { width: 17%; }
-.vph-report-table th:nth-child(5) { width: 40%; }
-.result-pill, .risk-pill { display: inline-block; max-width: 100%; padding: 2px 5px; border-radius: 999px; font-size: 7px; font-weight: 900; line-height: 1.2; }
+.vph-report-table th:nth-child(4) { width: 19%; }
+.vph-report-table th:nth-child(5) { width: 34%; }
+.result-pill, .risk-pill { display: inline-block; max-width: 100%; padding: 2px 6px; border-radius: 5px; font-size: 10pt; font-weight: 800; line-height: 1.2; }
+.result-table .result-pill { font-size: 11pt; }
 .result-pill.none { color: #5e7065; background: #edf1ee; }
 .result-pill.low { color: #1c6038; background: #dcefe2; }
 .result-pill.medium { color: #755000; background: #f7e7b9; }
@@ -258,29 +274,28 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .risk-pill.risk-medium { color: #694800; background: #e9c76c; }
 .risk-pill.risk-low { color: #fff; background: #4b9164; }
 .empty-result { min-height: 70px; display: grid; place-items: center; align-content: center; gap: 4px; border: 1px solid #c6dacb; border-radius: 7px; color: var(--green); background: #f5faf6; }
-.empty-result b { font-size: 11px; }
-.empty-result span { color: var(--muted); font-size: 7px; }
-.not-detected-vph { margin-top: 7px; padding: 7px; border: 1px solid #d2dfd5; border-radius: 6px; background: #f6f9f7; font-size: 7.5px; line-height: 1.4; }
+.empty-result b { font-size: 12pt; }
+.empty-result span { color: #4c6255; font-size: 10pt; }
+.not-detected-vph { margin-top: 7px; padding: 9px; border: 1px solid #d2dfd5; border-radius: 6px; background: #f6f9f7; font-size: 10pt; line-height: 1.4; }
 .chart-frame { margin-top: 9px; padding: 7px 10px 4px; border: 1px solid #c7dacc; border-radius: 7px; background: #fbfdfb; }
-.chart-frame svg { display: block; width: 100%; height: 168px; }
+.chart-frame svg { display: block; width: 100%; height: auto; }
 .chart-frame line { stroke: #5f8b6d; stroke-width: 1; }
-.chart-frame text { fill: #395243; font-size: 7px; font-weight: 800; }
-.chart-frame .chart-value { font-size: 5px; }
-.chart-frame .chart-axis { font-size: 6px; }
+.chart-frame text { fill: #395243; font-size: 11px; font-weight: 800; }
+.chart-frame .chart-value { font-size: 9px; }
+.chart-frame .chart-axis { font-size: 10px; }
 .chart-low { fill: #62a778; }
 .chart-medium { fill: #d2a039; }
 .chart-high { fill: #b84f6c; }
 .legend-row { margin-top: 7px; display: flex; justify-content: center; gap: 5px; }
-.text-panel { min-height: 105px; padding: 11px; border: 1px solid #c5d9c9; border-radius: 7px; font-size: 10px; line-height: 1.55; background: #fcfdfc; }
-.text-panel.recommendations { min-height: 145px; }
-.legal-note { margin-top: 13px; padding: 10px 12px; border-left: 4px solid var(--rose); color: #4b5f54; background: #f8f3f5; font-size: 10px; font-weight: 800; line-height: 1.45; }
-.signature-block { position: absolute; right: 14mm; bottom: 25mm; width: 68mm; display: grid; justify-items: center; text-align: center; }
+.text-panel { min-height: 0; padding: 12px; border: 1px solid #c5d9c9; border-radius: 7px; font-size: 11pt; line-height: 1.5; background: #fcfdfc; overflow-wrap: anywhere; }
+.legal-note { margin-top: 13px; padding: 12px; border-left: 4px solid var(--rose); color: #354a3e; background: #f8f3f5; font-size: 11pt; font-weight: 800; line-height: 1.45; }
+.signature-block { width: 76mm; margin: 14mm 0 0 auto; display: grid; justify-items: center; text-align: center; }
 .signature-block > div { width: 100%; display: grid; justify-items: center; }
-.signature-block img { width: 39mm; height: 19mm; object-fit: contain; margin-bottom: 1mm; }
+.signature-block img { display: block; width: 32mm; height: auto; margin-bottom: 1mm; }
 .signature-block span { display: block; width: 100%; border-top: 1px solid #31473a; }
-.signature-block b { margin-top: 3px; font-size: 9.5px; }
-.signature-block small { margin-top: 2px; color: var(--muted); font-size: 7px; }
-.report-footer { position: absolute; left: 12mm; right: 12mm; bottom: 6mm; display: flex; justify-content: space-between; padding-top: 3px; border-top: 1px solid #c8d9cc; color: #6c7c72; font-size: 7px; }
+.signature-block b { margin-top: 4px; font-size: 11pt; }
+.signature-block small { margin-top: 4px; color: #4c6255; font-size: 10pt; line-height: 1.35; }
+.report-footer { position: absolute; left: 12mm; right: 12mm; bottom: 6mm; display: flex; justify-content: space-between; gap: 12px; padding-top: 5px; border-top: 1px solid #c8d9cc; color: #4c6255; font-size: 8pt; }
 .report-footer b { color: var(--green); }
 
 .instructions-dialog { width: min(720px, calc(100vw - 30px)); padding: 0; border: 1px solid #b8d0be; border-radius: 8px; color: var(--ink); box-shadow: 0 24px 70px rgba(22, 45, 29, .28); }

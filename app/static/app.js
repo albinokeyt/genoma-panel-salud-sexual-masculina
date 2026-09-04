@@ -61,6 +61,7 @@ const DEFAULT_SETTINGS = {
   reportSubtitle: "Detección molecular de ITS, microbiología, micología y 28 genotipos de VPH",
   labName: "Laboratorios Genoma",
   signature: "MSc. Gabriela Espinoza",
+  signatureCredentials: "Genética Clínica\nMicrobiota Humana\nCiencia y Tecnología de los Alimentos",
   legalNote: "Este informe se basa en resultados moleculares. La correlación clínica, el diagnóstico y el tratamiento corresponden al médico tratante.",
   sampleType: "Hisopado genital",
   interpretation: "El panel molecular fue procesado con controles analíticos. Los hallazgos detectados deben correlacionarse con los antecedentes, la exploración clínica y otros estudios complementarios.",
@@ -87,6 +88,7 @@ let database = { patients: [], reports: [] };
 let currentPatientId = null;
 let currentTab = "its";
 let pdfExportInProgress = false;
+let paginationFrame = 0;
 
 function $(id) { return document.getElementById(id); }
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -143,6 +145,7 @@ async function api(path, options = {}) {
 
 function showView(id) {
   document.querySelectorAll(".app-view").forEach((view) => view.classList.toggle("hidden", view.id !== id));
+  if (id === "editorView") ReportLayout.paginate($("report"));
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -215,15 +218,40 @@ function renderResultPanel() {
   if (currentTab === "vph") panel.innerHTML = vphInputs();
 }
 
-const BASIC_FIELDS = ["patientName", "documentType", "patientDocument", "evalDate", "birthDate", "sampleType", "dnaConcentration", "purity", "internalControl", "interpretation", "recommendations", "observations", "signatureText"];
+const BASIC_FIELDS = ["patientName", "documentType", "patientDocument", "evalDate", "sampleType", "dnaConcentration", "purity", "internalControl", "interpretation", "recommendations", "observations", "signatureText"];
+const BIRTH_FIELDS = ["birthDay", "birthMonth", "birthYear"];
+
+function birthDateResult() {
+  return BirthDate.parse({ day: $("birthDay").value, month: $("birthMonth").value, year: $("birthYear").value });
+}
+
+function validateBirthDate() {
+  const result = birthDateResult();
+  $("birthDateError").textContent = result.error;
+  BIRTH_FIELDS.forEach((id) => $(id).setAttribute("aria-invalid", String(Boolean(result.error))));
+  if (result.error) {
+    showView("editorView");
+    $("birthYear").focus();
+    notify(result.error, "error");
+    return false;
+  }
+  return true;
+}
 
 function collectBasicState() {
   BASIC_FIELDS.forEach((id) => { if ($(id)) state[id] = $(id).value; });
+  state.birthDate = birthDateResult().value;
 }
 
 function applyState(nextState) {
   state = deepMerge(makeEmptyState(), nextState || {});
   BASIC_FIELDS.forEach((id) => { if ($(id)) $(id).value = state[id] ?? ""; });
+  const [year, month, day] = String(state.birthDate || "").split("-");
+  $("birthDay").value = day || "";
+  $("birthMonth").value = month ? String(Number(month)) : "";
+  $("birthYear").value = year || "";
+  $("birthDateError").textContent = "";
+  BIRTH_FIELDS.forEach((id) => $(id).removeAttribute("aria-invalid"));
   renderResultPanel();
   renderReport();
 }
@@ -244,7 +272,7 @@ function sectionHeader(number, title, subtitle = "") {
 }
 
 function reportHeader(compact = false) {
-  return `<header class="report-header ${compact ? "compact" : ""}"><img src="/assets/logo_genoma.png" alt="Genoma"><div><h1>${escapeHtml(settings.reportTitle)}</h1><p>${escapeHtml(settings.reportSubtitle)}</p></div></header>`;
+  return `<header class="report-header ${compact ? "compact" : ""}"><img src="/assets/logo_genoma.png" width="5051" height="1171" alt="Genoma"><div><h1>${escapeHtml(settings.reportTitle)}</h1><p>${escapeHtml(settings.reportSubtitle)}</p></div></header>`;
 }
 
 function reportFooter(page) {
@@ -280,20 +308,27 @@ function vphChart(rows) {
   if (!detected.length) return "";
   const max = Math.max(...detected.map((row) => row.load), 1);
   const width = 560, height = 205, left = 46, bottom = 35, plot = width - left - 18;
-  const slot = plot / detected.length;
-  const bars = detected.map((row, index) => {
-    const normalized = Math.log10(row.load + 1) / Math.log10(max + 1);
-    const barHeight = Math.max(normalized * 125, 4);
-    const x = left + index * slot + slot * 0.22;
-    const y = height - bottom - barHeight;
-    const barWidth = Math.max(slot * 0.56, 8);
-    return `<g><rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="3" class="chart-${row.status.value}"/><text x="${x + barWidth / 2}" y="${height - 14}" text-anchor="middle">${row.id}</text><text x="${x + barWidth / 2}" y="${Math.max(y - 5, 14)}" text-anchor="middle" class="chart-value">${formatNumber(row.load, row.load < 1 ? 2 : 0)}</text></g>`;
-  }).join("");
-  return `<div class="chart-frame"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Carga viral por genotipo"><line x1="${left}" y1="10" x2="${left}" y2="${height - bottom}"/><line x1="${left}" y1="${height - bottom}" x2="${width - 10}" y2="${height - bottom}"/>${bars}<text x="${width / 2}" y="${height - 1}" text-anchor="middle" class="chart-axis">Genotipo</text></svg></div>`;
+  const charts = [];
+  for (let start = 0; start < detected.length; start += 7) {
+    const group = detected.slice(start, start + 7);
+    const slot = plot / group.length;
+    const bars = group.map((row, index) => {
+      const normalized = Math.log10(row.load + 1) / Math.log10(max + 1);
+      const barHeight = Math.max(normalized * 125, 4);
+      const x = left + index * slot + slot * 0.22;
+      const y = height - bottom - barHeight;
+      const barWidth = Math.max(slot * 0.56, 8);
+      return `<g><rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="3" class="chart-${row.status.value}"/><text x="${x + barWidth / 2}" y="${height - 14}" text-anchor="middle">${row.id}</text><text x="${x + barWidth / 2}" y="${Math.max(y - 5, 14)}" text-anchor="middle" class="chart-value">${formatNumber(row.load, row.load < 1 ? 2 : 0)}</text></g>`;
+    }).join("");
+    charts.push(`<div class="chart-frame"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Carga viral por genotipo"><line x1="${left}" y1="10" x2="${left}" y2="${height - bottom}"/><line x1="${left}" y1="${height - bottom}" x2="${width - 10}" y2="${height - bottom}"/>${bars}<text x="${width / 2}" y="${height - 1}" text-anchor="middle" class="chart-axis">Genotipo</text></svg></div>`);
+  }
+  return charts.join("");
 }
 
 function renderReport() {
   if (!state) return;
+  delete $("report").dataset.paginated;
+  delete $("report").dataset.layoutError;
   collectBasicState();
   const itsDetected = detectedFor(ITS_MARKERS, "its");
   const bacteriaDetected = detectedFor(BACTERIA_MARKERS, "bacteria");
@@ -302,7 +337,8 @@ function renderReport() {
   const vphDetected = vph.filter((item) => item.load !== null);
   const totalDetected = itsDetected.length + bacteriaDetected.length + fungiDetected.length + vphDetected.length;
   const notDetectedVph = vph.filter((item) => item.load === null).map((item) => `G${item.id}`).join(", ");
-  const patientBand = `<section class="patient-band"><div><small>FECHA</small><b>${formatDate(state.evalDate)}</b></div><div><small>PACIENTE</small><b>${escapeHtml(state.patientName || "Pendiente")}</b></div><div><small>${escapeHtml(state.documentType)}</small><b>${escapeHtml(state.patientDocument || "-")}</b></div><div><small>MUESTRA</small><b>${escapeHtml(state.sampleType || "-")}</b></div></section>`;
+  const age = BirthDate.age(state.birthDate, state.evalDate);
+  const patientBand = `<section class="patient-band"><div><small>EVALUACIÓN</small><b>${formatDate(state.evalDate)}</b></div><div><small>PACIENTE</small><b>${escapeHtml(state.patientName || "Pendiente")}</b></div><div><small>${escapeHtml(state.documentType)}</small><b>${escapeHtml(state.patientDocument || "-")}</b></div><div><small>NACIMIENTO</small><b>${formatDate(state.birthDate)}</b></div><div><small>EDAD</small><b>${age === "" ? "-" : `${age} años`}</b></div><div><small>MUESTRA</small><b>${escapeHtml(state.sampleType || "-")}</b></div></section>`;
 
   $("report").innerHTML = `
     <article class="report-page page-one">
@@ -340,9 +376,11 @@ function renderReport() {
       <section class="text-panel recommendations">${textBlock(state.recommendations)}</section>
       ${state.observations ? `${sectionHeader(8, "Observaciones")}<section class="text-panel">${textBlock(state.observations)}</section>` : ""}
       <section class="legal-note">${escapeHtml(settings.legalNote)}</section>
-      <section class="signature-block"><div><img src="/assets/firma_genoma.png" alt="Firma"><span></span><b>${escapeHtml(state.signatureText || settings.signature)}</b><small>${escapeHtml(settings.labName)}</small></div></section>
+      <section class="signature-block"><div><img src="/assets/firma_genoma.png" width="670" height="641" alt="Firma"><span></span><b>${escapeHtml(state.signatureText || settings.signature)}</b>${settings.signatureCredentials ? `<small>${textBlock(settings.signatureCredentials)}</small>` : ""}<small>${escapeHtml(settings.labName)}</small></div></section>
       ${reportFooter(4)}
     </article>`;
+  cancelAnimationFrame(paginationFrame);
+  paginationFrame = requestAnimationFrame(() => ReportLayout.paginate($("report")));
 }
 
 async function waitForReportAssets() {
@@ -359,6 +397,7 @@ async function waitForReportAssets() {
 
 async function downloadPdf() {
   if (pdfExportInProgress || !state) return;
+  if (!validateBirthDate()) return;
   if (typeof window.html2canvas !== "function" || !window.jspdf?.jsPDF) {
     notify("No se pudo cargar el generador de PDF. Actualiza la página e inténtalo de nuevo.", "error");
     return;
@@ -373,6 +412,9 @@ async function downloadPdf() {
   try {
     showView("editorView");
     renderReport();
+    await waitForReportAssets();
+    ReportLayout.paginate($("report"));
+    if ($("report").dataset.layoutError) throw new Error($("report").dataset.layoutError);
     await waitForReportAssets();
     const filename = `Panel de Salud Sexual Masculina ${state.patientName || "Paciente"}.pdf`
       .replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
@@ -446,6 +488,8 @@ function openNewReport(patientId = null) {
     fresh.patientName = patient.name;
     fresh.documentType = patient.documentType;
     fresh.patientDocument = patient.documentNumber;
+    const latest = database.reports.filter((report) => report.patientId === patientId).sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))[0];
+    fresh.birthDate = latest?.state?.birthDate || "";
   }
   currentTab = "its";
   applyState(fresh);
@@ -464,6 +508,7 @@ function openReport(id, printAfter = false) {
 
 async function saveReport() {
   collectBasicState();
+  if (!validateBirthDate()) return;
   if (!state.patientName.trim()) { notify("Escribe el nombre del paciente.", "error"); return; }
   if (!state.patientDocument.trim()) { notify("Escribe el documento del paciente.", "error"); return; }
   try {
@@ -487,6 +532,7 @@ function renderSettings() {
   $("settingReportSubtitle").value = settings.reportSubtitle;
   $("settingLabName").value = settings.labName;
   $("settingSignature").value = settings.signature;
+  $("settingSignatureCredentials").value = settings.signatureCredentials;
   $("settingLegalNote").value = settings.legalNote;
   $("settingSampleType").value = settings.sampleType;
   $("settingInterpretation").value = settings.interpretation;
@@ -499,6 +545,7 @@ function collectSettings() {
   settings.reportSubtitle = $("settingReportSubtitle").value.trim();
   settings.labName = $("settingLabName").value.trim();
   settings.signature = $("settingSignature").value.trim();
+  settings.signatureCredentials = $("settingSignatureCredentials").value.trim();
   settings.legalNote = $("settingLegalNote").value.trim();
   settings.sampleType = $("settingSampleType").value.trim();
   settings.interpretation = $("settingInterpretation").value.trim();
@@ -565,6 +612,11 @@ async function bootstrap() {
 
 document.addEventListener("input", (event) => {
   if (event.target.id === "globalSearch") { renderDashboard(); return; }
+  if (BIRTH_FIELDS.includes(event.target.id)) {
+    $("birthDateError").textContent = "";
+    BIRTH_FIELDS.forEach((id) => $(id).removeAttribute("aria-invalid"));
+    collectBasicState(); renderReport(); return;
+  }
   if (BASIC_FIELDS.includes(event.target.id)) { collectBasicState(); renderReport(); }
 });
 
@@ -576,7 +628,7 @@ document.addEventListener("change", (event) => {
     renderReport();
     return;
   }
-  if (BASIC_FIELDS.includes(event.target.id)) { collectBasicState(); renderReport(); }
+  if (BASIC_FIELDS.includes(event.target.id) || BIRTH_FIELDS.includes(event.target.id)) { collectBasicState(); renderReport(); }
 });
 
 document.addEventListener("input", (event) => {

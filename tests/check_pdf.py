@@ -1,15 +1,20 @@
 """Validate captured PDFs. Requires pypdf and Pillow in the test environment."""
 
-import sys
+import argparse
 from pathlib import Path
 
 from pypdf import PdfReader
 
 
-for filename in sys.argv[1:]:
+parser = argparse.ArgumentParser()
+parser.add_argument("--pages", type=int, default=4)
+parser.add_argument("files", nargs="+")
+arguments = parser.parse_args()
+
+for filename in arguments.files:
     path = Path(filename)
     pdf = PdfReader(path)
-    assert len(pdf.pages) == 4, f"{path}: expected four pages"
+    assert len(pdf.pages) == arguments.pages, f"{path}: expected {arguments.pages} pages"
     for index, page in enumerate(pdf.pages, 1):
         assert abs(float(page.mediabox.width) - 595.28) < 0.1
         assert abs(float(page.mediabox.height) - 841.89) < 0.1
@@ -21,4 +26,4 @@ for filename in sys.argv[1:]:
         histogram = body.histogram()
         dark_pixels = sum(histogram[:180])
         assert dark_pixels > body.width * body.height * 0.002, f"{path}, page {index}: blank body"
-    print(f"{path.name}: four A4 pages with report content")
+    print(f"{path.name}: {arguments.pages} A4 pages with report content")
