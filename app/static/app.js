@@ -109,7 +109,7 @@ function emptyResults(markers) {
 function makeEmptyState() {
   return {
     patientName: "", documentType: "Cédula", patientDocument: "", evalDate: today(), birthDate: "",
-    sampleType: settings.sampleType, dnaConcentration: "", cellularity: "Adecuada", purity: "Óptima",
+    sampleType: settings.sampleType, dnaConcentration: "", purity: "Óptima",
     internalControl: "Detectado",
     results: { its: emptyResults(ITS_MARKERS), bacteria: emptyResults(BACTERIA_MARKERS), fungi: emptyResults(FUNGI_MARKERS) },
     vph: Object.fromEntries(GENOTYPES.map((item) => [item.id, ""])),
@@ -214,7 +214,7 @@ function renderResultPanel() {
   if (currentTab === "vph") panel.innerHTML = vphInputs();
 }
 
-const BASIC_FIELDS = ["patientName", "documentType", "patientDocument", "evalDate", "birthDate", "sampleType", "dnaConcentration", "cellularity", "purity", "internalControl", "interpretation", "recommendations", "observations", "signatureText"];
+const BASIC_FIELDS = ["patientName", "documentType", "patientDocument", "evalDate", "birthDate", "sampleType", "dnaConcentration", "purity", "internalControl", "interpretation", "recommendations", "observations", "signatureText"];
 
 function collectBasicState() {
   BASIC_FIELDS.forEach((id) => { if ($(id)) state[id] = $(id).value; });
@@ -306,7 +306,7 @@ function renderReport() {
   $("report").innerHTML = `
     <article class="report-page page-one">
       ${reportHeader()}${patientBand}
-      <section class="quality-band"><div><small>CONTROL INTERNO</small><b class="${state.internalControl === "Detectado" ? "good" : "alert"}">${escapeHtml(state.internalControl)}</b></div><div><small>ADN MUESTRA</small><b>${escapeHtml(state.dnaConcentration || "No registrado")}</b></div><div><small>CELULARIDAD</small><b>${escapeHtml(state.cellularity || "No registrada")}</b></div><div><small>PUREZA</small><b>${escapeHtml(state.purity)}</b></div></section>
+      <section class="quality-band"><div><small>CONTROL INTERNO</small><b class="${state.internalControl === "Detectado" ? "good" : "alert"}">${escapeHtml(state.internalControl)}</b></div><div><small>ADN MUESTRA</small><b>${escapeHtml(state.dnaConcentration || "No registrado")}</b></div><div><small>PUREZA</small><b>${escapeHtml(state.purity)}</b></div></section>
       ${sectionHeader(1, "Resumen ejecutivo", "Hallazgos detectados en los cuatro componentes del panel")}
       <section class="summary-strip"><div><strong>${totalDetected}</strong><span>detecciones totales</span></div><div><strong>${itsDetected.length}</strong><span>agentes ITS</span></div><div><strong>${bacteriaDetected.length}</strong><span>bacterias</span></div><div><strong>${fungiDetected.length}</strong><span>hongos</span></div><div><strong>${vphDetected.length}</strong><span>genotipos VPH</span></div></section>
       <section class="finding-board">${positiveSummary(itsDetected, "ITS")}${positiveSummary(bacteriaDetected, "Bacterias")}${positiveSummary(fungiDetected, "Hongos")}${positiveSummary(vphDetected.map((item) => ({ label: `G${item.id}`, status: item.status.value })), "VPH")}</section>
@@ -455,7 +455,7 @@ function loadExample() {
   const example = makeEmptyState();
   Object.assign(example, {
     patientName: "Paciente de ejemplo", patientDocument: "V-00.000.000", birthDate: "1988-04-12",
-    dnaConcentration: "42,8 ng/ul", cellularity: "Adecuada", purity: "Óptima",
+    dnaConcentration: "42,8 ng/ul", purity: "Óptima",
     interpretation: "El control interno y la calidad de la muestra respaldan la validez analítica. Se identificaron hallazgos moleculares que deben correlacionarse con la evaluación clínica especializada.",
     observations: "Muestra procesada sin incidencias preanalíticas.",
   });

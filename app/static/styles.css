@@ -212,7 +212,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .patient-band > div:first-child { border-left: 0; }
 .patient-band small, .quality-band small { display: block; margin-bottom: 4px; color: #688076; font-size: 7px; font-weight: 900; text-transform: uppercase; }
 .patient-band b { display: block; font-size: 9.5px; overflow-wrap: anywhere; }
-.quality-band { margin-top: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.quality-band { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .quality-band > div { min-height: 43px; padding: 7px; border: 1px solid #ceded2; border-radius: 6px; background: #f8fbf8; }
 .quality-band b { display: block; font-size: 9px; }
 .quality-band b.good { color: var(--green); }

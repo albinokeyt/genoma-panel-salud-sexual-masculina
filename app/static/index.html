@@ -101,9 +101,8 @@
           <label>Fecha de nacimiento<input id="birthDate" type="date"></label>
           <label>Tipo de muestra<input id="sampleType"></label>
           <label>Concentración de ADN<input id="dnaConcentration" placeholder="Ej: 35,2 ng/ul"></label>
-          <label>Celularidad<input id="cellularity" placeholder="Ej: Adecuada"></label>
           <label>Pureza<select id="purity"><option>Óptima</option><option>Adecuada</option><option>Subóptima</option><option>No evaluada</option></select></label>
-          <label>Control interno<select id="internalControl"><option>Detectado</option><option>No detectado</option><option>No evaluado</option></select></label>
+          <label class="wide">Control interno<select id="internalControl"><option>Detectado</option><option>No detectado</option><option>No evaluado</option></select></label>
         </div>
       </section>
 
@@ -138,7 +137,7 @@
     <header><div><strong>Cómo crear el informe</strong><span>Guía rápida del panel masculino</span></div><button type="button" data-action="close-instructions" aria-label="Cerrar">Cerrar</button></header>
     <div class="instructions-content">
       <ol>
-        <li><b>Registra al paciente.</b> Escribe nombre, documento, fecha, muestra, concentración, celularidad, pureza y control interno.</li>
+        <li><b>Registra al paciente.</b> Escribe nombre, documento, fecha, muestra, concentración, pureza y control interno.</li>
         <li><b>Completa cada bloque.</b> En ITS, bacterias y hongos selecciona No detectado, Detectado bajo, Detectado medio o Detectado alto.</li>
         <li><b>Introduce los CT de VPH.</b> Escribe únicamente los CT detectados. Deja vacío lo no detectado; la app calcula carga y clasificación automáticamente.</li>
         <li><b>Revisa la vista previa.</b> Confirma que nombres, resultados, interpretación y recomendaciones sean correctos.</li>
