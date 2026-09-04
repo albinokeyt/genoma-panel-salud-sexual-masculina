@@ -142,12 +142,14 @@
         <li><b>Introduce los CT de VPH.</b> Escribe únicamente los CT detectados. Deja vacío lo no detectado; la app calcula carga y clasificación automáticamente.</li>
         <li><b>Revisa la vista previa.</b> Confirma que nombres, resultados, interpretación y recomendaciones sean correctos.</li>
         <li><b>Guarda el informe.</b> Se creará el paciente o una nueva versión dentro de su historial.</li>
-        <li><b>Genera el PDF.</b> Presiona Generar PDF y selecciona Guardar como PDF, papel A4, escala 100 % y sin encabezados del navegador.</li>
+        <li><b>Genera el PDF.</b> Presiona Generar PDF para descargar el informe directamente en A4. No necesitas configurar la impresión del navegador.</li>
       </ol>
       <p class="warning-note"><b>Importante:</b> el informe organiza resultados moleculares. La interpretación diagnóstica y la conducta terapéutica corresponden al médico tratante.</p>
     </div>
   </dialog>
 
+  <script src="/static/vendor/html2canvas.min.js"></script>
+  <script src="/static/vendor/jspdf.umd.min.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

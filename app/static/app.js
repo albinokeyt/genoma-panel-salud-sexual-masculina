@@ -86,6 +86,7 @@ let state = null;
 let database = { patients: [], reports: [] };
 let currentPatientId = null;
 let currentTab = "its";
+let pdfExportInProgress = false;
 
 function $(id) { return document.getElementById(id); }
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -344,6 +345,81 @@ function renderReport() {
     </article>`;
 }
 
+async function waitForReportAssets() {
+  if (document.fonts?.ready) await document.fonts.ready;
+  const images = [...$("report").querySelectorAll("img")];
+  await Promise.all(images.map((image) => image.complete
+    ? Promise.resolve()
+    : new Promise((resolve) => {
+      image.addEventListener("load", resolve, { once: true });
+      image.addEventListener("error", resolve, { once: true });
+    })));
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+
+async function downloadPdf() {
+  if (pdfExportInProgress || !state) return;
+  if (typeof window.html2canvas !== "function" || !window.jspdf?.jsPDF) {
+    notify("No se pudo cargar el generador de PDF. Actualiza la página e inténtalo de nuevo.", "error");
+    return;
+  }
+  pdfExportInProgress = true;
+  const buttons = [...document.querySelectorAll('[data-action="print"], [data-print-report]')];
+  const buttonStates = buttons.map((button) => ({ text: button.textContent, disabled: button.disabled }));
+  const panels = [...document.querySelectorAll(".app-view, .topbar")];
+  const panelStates = panels.map((panel) => panel.inert);
+  buttons.forEach((button) => { button.disabled = true; button.textContent = "Generando PDF..."; });
+  panels.forEach((panel) => { panel.inert = true; });
+  try {
+    showView("editorView");
+    renderReport();
+    await waitForReportAssets();
+    const filename = `Panel de Salud Sexual Masculina ${state.patientName || "Paciente"}.pdf`
+      .replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
+    const reportPages = [...document.querySelectorAll("#report .report-page")];
+    if (!reportPages.length) throw new Error("No hay páginas para exportar.");
+    const pdf = new window.jspdf.jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+    for (let index = 0; index < reportPages.length; index += 1) {
+      const page = reportPages[index];
+      const canvas = await window.html2canvas(page, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+        imageTimeout: 12000,
+        scrollX: 0,
+        scrollY: 0,
+        width: page.offsetWidth,
+        height: page.offsetHeight,
+        windowWidth: page.offsetWidth,
+        windowHeight: page.offsetHeight,
+        onclone: (clonedDocument, clonedPage) => {
+          // Remove preview clipping only in the export copy.
+          clonedDocument.body.classList.add("pdf-exporting");
+          clonedDocument.querySelectorAll(".report-page").forEach((otherPage) => {
+            if (otherPage !== clonedPage) otherPage.style.display = "none";
+          });
+        },
+      });
+      if (index > 0) pdf.addPage("a4", "portrait");
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.94), "JPEG", 0, 0, 210, 297, undefined, "FAST");
+      canvas.width = 1;
+      canvas.height = 1;
+    }
+    pdf.save(filename);
+    notify("PDF A4 descargado correctamente.");
+  } catch (error) {
+    notify(`No se pudo generar el PDF: ${error.message}`, "error");
+  } finally {
+    pdfExportInProgress = false;
+    panels.forEach((panel, index) => { panel.inert = panelStates[index]; });
+    buttons.forEach((button, index) => {
+      button.disabled = buttonStates[index].disabled;
+      button.textContent = buttonStates[index].text;
+    });
+  }
+}
+
 function renderDashboard() {
   const query = normalize($("globalSearch")?.value);
   const patients = database.patients.filter((patient) => !query || normalize(`${patient.name} ${patient.documentType} ${patient.documentNumber}`).includes(query));
@@ -377,12 +453,13 @@ function openNewReport(patientId = null) {
 }
 
 function openReport(id, printAfter = false) {
+  if (pdfExportInProgress) return;
   const report = reportById(id);
   if (!report) return;
   currentPatientId = report.patientId;
   applyState(report.state);
   showView("editorView");
-  if (printAfter) setTimeout(() => window.print(), 180);
+  if (printAfter) void downloadPdf();
 }
 
 async function saveReport() {
@@ -540,7 +617,7 @@ document.addEventListener("click", (event) => {
   if (action === "save-report") void saveReport();
   if (action === "save-settings") void saveSettings();
   if (action === "restore-settings") void restoreSettings();
-  if (action === "print") { collectBasicState(); renderReport(); setTimeout(() => window.print(), 100); }
+  if (action === "print") void downloadPdf();
 });
 
 bootstrap();
