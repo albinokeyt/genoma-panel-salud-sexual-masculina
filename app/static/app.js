@@ -259,7 +259,7 @@ function resultTable(markers, group) {
 
 function positiveSummary(items, groupName) {
   if (!items.length) return `<div class="finding-group clear"><b>${groupName}</b><span>Sin detecciones</span></div>`;
-  return `<div class="finding-group"><b>${groupName}</b><div>${items.map((item) => `<span class="result-pill ${item.status}">${escapeHtml(item.label)} · ${statusLabel(item.status).replace("Detectado ", "")}</span>`).join("")}</div></div>`;
+  return `<div class="finding-group"><b>${groupName}</b><div>${items.map((item) => `<span class="result-pill ${item.status}">${escapeHtml(item.label)} · ${statusLabel(item.status)}</span>`).join("")}</div></div>`;
 }
 
 function vphRiskClass(risk) {
