@@ -250,10 +250,10 @@ function reportFooter(page) {
   return `<footer class="report-footer"><span>${escapeHtml(settings.labName)} · Informe de apoyo para interpretación profesional</span><b>${page}</b></footer>`;
 }
 
-function resultTable(markers, group, includeMethod = false) {
-  return `<table class="clinical-table"><thead><tr><th>Agente estudiado</th>${includeMethod ? "<th>Mezcla / canal</th>" : ""}<th>Resultado</th></tr></thead><tbody>${markers.map((marker) => {
+function resultTable(markers, group) {
+  return `<table class="clinical-table result-table"><thead><tr><th>Agente estudiado</th><th>Resultado</th></tr></thead><tbody>${markers.map((marker) => {
     const value = state.results[group][marker.id] || "none";
-    return `<tr><td><i>${escapeHtml(marker.label)}</i></td>${includeMethod ? `<td>${escapeHtml(marker.mix)}<small>${escapeHtml(marker.channel)}</small></td>` : ""}<td><span class="result-pill ${value}">${statusLabel(value)}</span></td></tr>`;
+    return `<tr><td><i>${escapeHtml(marker.label)}</i></td><td><span class="result-pill ${value}">${statusLabel(value)}</span></td></tr>`;
   }).join("")}</tbody></table>`;
 }
 
@@ -311,7 +311,7 @@ function renderReport() {
       <section class="summary-strip"><div><strong>${totalDetected}</strong><span>detecciones totales</span></div><div><strong>${itsDetected.length}</strong><span>agentes ITS</span></div><div><strong>${bacteriaDetected.length}</strong><span>bacterias</span></div><div><strong>${fungiDetected.length}</strong><span>hongos</span></div><div><strong>${vphDetected.length}</strong><span>genotipos VPH</span></div></section>
       <section class="finding-board">${positiveSummary(itsDetected, "ITS")}${positiveSummary(bacteriaDetected, "Bacterias")}${positiveSummary(fungiDetected, "Hongos")}${positiveSummary(vphDetected.map((item) => ({ label: `G${item.id}`, status: item.status.value })), "VPH")}</section>
       ${sectionHeader(2, "Panel de infecciones de transmisión sexual")}
-      ${resultTable(ITS_MARKERS, "its", true)}
+      ${resultTable(ITS_MARKERS, "its")}
       ${reportFooter(1)}
     </article>
     <article class="report-page page-two">

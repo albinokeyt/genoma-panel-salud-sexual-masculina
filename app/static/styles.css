@@ -239,6 +239,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .clinical-table td { height: 24px; padding: 3px 6px; border-top: 1px solid #d7e3da; vertical-align: middle; overflow-wrap: anywhere; }
 .clinical-table td small { display: block; margin-top: 1px; color: #6e7e74; font-size: 7px; }
 .clinical-table td:last-child { width: 130px; }
+.result-table th:first-child { width: 70%; }
+.result-table th:last-child { width: 30%; }
 .clinical-table tr:nth-child(even) td { background: #fafcfa; }
 .clinical-table i { font-style: italic; }
 .clinical-table.vph-report-table { font-size: 8px; }
