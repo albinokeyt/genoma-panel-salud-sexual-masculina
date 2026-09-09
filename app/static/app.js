@@ -111,6 +111,7 @@ function emptyResults(markers) {
 
 function makeEmptyState() {
   return {
+    components: { its: true, bacteria: true, fungi: true, vph: true },
     patientName: "", documentType: "Cédula", patientDocument: "", evalDate: today(), birthDate: "",
     sampleType: settings.sampleType, dnaConcentration: "", purity: "Óptima",
     internalControl: "Detectado",
@@ -210,6 +211,9 @@ function vphInputs() {
 }
 
 function renderResultPanel() {
+  document.querySelectorAll("[data-component]").forEach((input) => { input.checked = state.components[input.dataset.component]; });
+  document.querySelectorAll("[data-result-tab]").forEach((button) => { button.hidden = !state.components[button.dataset.resultTab]; });
+  if (!state.components[currentTab]) currentTab = Object.keys(state.components).find((key) => state.components[key]);
   document.querySelectorAll("[data-result-tab]").forEach((button) => button.classList.toggle("active", button.dataset.resultTab === currentTab));
   const panel = $("resultPanel");
   if (currentTab === "its") panel.innerHTML = `<div class="result-summary"><b>Infecciones de transmisión sexual</b><span>14 agentes estudiados</span></div><div class="marker-list">${markerRows(ITS_MARKERS, "its")}</div>`;
@@ -257,10 +261,12 @@ function applyState(nextState) {
 }
 
 function detectedFor(markers, group) {
+  if (!state.components[group]) return [];
   return markers.filter((marker) => (state.results[group][marker.id] || "none") !== "none").map((marker) => ({ ...marker, status: state.results[group][marker.id] }));
 }
 
 function vphRows() {
+  if (!state.components.vph) return [];
   return GENOTYPES.map((meta) => {
     const load = vphLoad(meta, state.vph[meta.id]);
     return { ...meta, load, status: classifyVph(meta, load) };
@@ -272,7 +278,9 @@ function sectionHeader(number, title, subtitle = "") {
 }
 
 function reportHeader(compact = false) {
-  return `<header class="report-header ${compact ? "compact" : ""}"><img src="/assets/logo_genoma.png" width="5051" height="1171" alt="Genoma"><div><h1>${escapeHtml(settings.reportTitle)}</h1><p>${escapeHtml(settings.reportSubtitle)}</p></div></header>`;
+  const labels = { its: "ITS", bacteria: "Bacterias", fungi: "Hongos", vph: "VPH" };
+  const subtitle = Object.keys(labels).every((key) => state.components[key]) ? settings.reportSubtitle : `Componentes evaluados: ${Object.keys(labels).filter((key) => state.components[key]).map((key) => labels[key]).join(", ")}`;
+  return `<header class="report-header ${compact ? "compact" : ""}"><img src="/assets/logo_genoma.png" width="5051" height="1171" alt="Genoma"><div><h1>${escapeHtml(settings.reportTitle)}</h1><p>${escapeHtml(subtitle)}</p></div></header>`;
 }
 
 function reportFooter(page) {
@@ -344,22 +352,19 @@ function renderReport() {
     <article class="report-page page-one">
       ${reportHeader()}${patientBand}
       <section class="quality-band"><div><small>CONTROL INTERNO</small><b class="${state.internalControl === "Detectado" ? "good" : "alert"}">${escapeHtml(state.internalControl)}</b></div><div><small>ADN MUESTRA</small><b>${escapeHtml(state.dnaConcentration || "No registrado")}</b></div><div><small>PUREZA</small><b>${escapeHtml(state.purity)}</b></div></section>
-      ${sectionHeader(1, "Resumen ejecutivo", "Hallazgos detectados en los cuatro componentes del panel")}
-      <section class="summary-strip"><div><strong>${totalDetected}</strong><span>detecciones totales</span></div><div><strong>${itsDetected.length}</strong><span>agentes ITS</span></div><div><strong>${bacteriaDetected.length}</strong><span>bacterias</span></div><div><strong>${fungiDetected.length}</strong><span>hongos</span></div><div><strong>${vphDetected.length}</strong><span>genotipos VPH</span></div></section>
-      <section class="finding-board">${positiveSummary(itsDetected, "ITS")}${positiveSummary(bacteriaDetected, "Bacterias")}${positiveSummary(fungiDetected, "Hongos")}${positiveSummary(vphDetected.map((item) => ({ label: `G${item.id}`, status: item.status.value })), "VPH")}</section>
-      ${sectionHeader(2, "Panel de infecciones de transmisión sexual")}
-      ${resultTable(ITS_MARKERS, "its")}
+      ${sectionHeader(1, "Resumen ejecutivo", "Hallazgos de los componentes evaluados")}
+      <section class="summary-strip"><div><strong>${totalDetected}</strong><span>detecciones totales</span></div>${state.components.its ? `<div><strong>${itsDetected.length}</strong><span>agentes ITS</span></div>` : ""}${state.components.bacteria ? `<div><strong>${bacteriaDetected.length}</strong><span>bacterias</span></div>` : ""}${state.components.fungi ? `<div><strong>${fungiDetected.length}</strong><span>hongos</span></div>` : ""}${state.components.vph ? `<div><strong>${vphDetected.length}</strong><span>genotipos VPH</span></div>` : ""}</section>
+      <section class="finding-board">${state.components.its ? positiveSummary(itsDetected, "ITS") : ""}${state.components.bacteria ? positiveSummary(bacteriaDetected, "Bacterias") : ""}${state.components.fungi ? positiveSummary(fungiDetected, "Hongos") : ""}${state.components.vph ? positiveSummary(vphDetected.map((item) => ({ label: `G${item.id}`, status: item.status.value })), "VPH") : ""}</section>
+      ${state.components.its ? sectionHeader(2, "Panel de infecciones de transmisión sexual") + resultTable(ITS_MARKERS, "its") : ""}
       ${reportFooter(1)}
     </article>
-    <article class="report-page page-two">
+    ${state.components.bacteria || state.components.fungi ? `<article class="report-page page-two">
       ${reportHeader(true)}
-      ${sectionHeader(3, "Bacterias uropatógenas", "Detección cualitativa y nivel reportado")}
-      ${resultTable(BACTERIA_MARKERS, "bacteria")}
-      ${sectionHeader(4, "Hongos y levaduras", "Detección cualitativa y nivel reportado")}
-      ${resultTable(FUNGI_MARKERS, "fungi")}
+      ${state.components.bacteria ? sectionHeader(3, "Bacterias uropatógenas", "Detección cualitativa y nivel reportado") + resultTable(BACTERIA_MARKERS, "bacteria") : ""}
+      ${state.components.fungi ? sectionHeader(4, "Hongos y levaduras", "Detección cualitativa y nivel reportado") + resultTable(FUNGI_MARKERS, "fungi") : ""}
       ${reportFooter(2)}
-    </article>
-    <article class="report-page page-three">
+    </article>` : ""}
+    ${state.components.vph ? `<article class="report-page page-three">
       ${reportHeader(true)}
       ${sectionHeader(5, "Carga viral y tipificación de VPH", "La clasificación de carga es independiente del riesgo del genotipo")}
       ${vphTable(vph)}
@@ -367,7 +372,7 @@ function renderReport() {
       ${vphChart(vph)}
       <section class="legend-row"><span class="risk-pill risk-high">Alto riesgo</span><span class="risk-pill risk-medium">Riesgo intermedio</span><span class="risk-pill risk-low">Bajo riesgo</span></section>
       ${reportFooter(3)}
-    </article>
+    </article>` : ""}
     <article class="report-page page-four">
       ${reportHeader(true)}
       ${sectionHeader(6, "Interpretación clínica")}
@@ -379,6 +384,7 @@ function renderReport() {
       <section class="signature-block"><div><img src="/assets/firma_genoma.png" width="670" height="641" alt="Firma"><span></span><b>${escapeHtml(state.signatureText || settings.signature)}</b>${settings.signatureCredentials ? `<small>${textBlock(settings.signatureCredentials)}</small>` : ""}<small>${escapeHtml(settings.labName)}</small></div></section>
       ${reportFooter(4)}
     </article>`;
+  $("report").querySelectorAll(".report-section-title > span").forEach((badge, index) => { badge.textContent = index + 1; });
   cancelAnimationFrame(paginationFrame);
   paginationFrame = requestAnimationFrame(() => ReportLayout.paginate($("report")));
 }
@@ -621,6 +627,19 @@ document.addEventListener("input", (event) => {
 });
 
 document.addEventListener("change", (event) => {
+  const component = event.target.closest("[data-component]");
+  if (component) {
+    const key = component.dataset.component;
+    if (!component.checked && Object.values(state.components).filter(Boolean).length === 1) {
+      component.checked = true;
+      notify("Selecciona al menos un componente.", "error");
+      return;
+    }
+    state.components[key] = component.checked;
+    renderResultPanel();
+    renderReport();
+    return;
+  }
   const result = event.target.closest("[data-result-group]");
   if (result) {
     state.results[result.dataset.resultGroup][result.dataset.resultId] = result.value;

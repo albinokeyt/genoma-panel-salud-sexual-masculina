@@ -372,3 +372,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
   .report-page { width: 210mm !important; height: 297mm !important; margin: 0 !important; box-shadow: none !important; break-after: page; page-break-after: always; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .report-page:last-child { break-after: auto; page-break-after: auto; }
 }
+:root .component-selection { display:flex; flex-wrap:wrap; gap:12px 20px; margin:0 0 16px; padding:12px; border:1px solid var(--line); }
+.component-selection legend { font-weight:700; }
+.component-selection label { display:flex; align-items:center; gap:8px; }
+.component-selection input { width:18px; height:18px; }
+.result-tabs [hidden] { display:none; }
+.summary-strip { grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); }
